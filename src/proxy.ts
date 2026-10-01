@@ -8,5 +8,5 @@ export async function proxy(request: NextRequest) {
 // Owner dashboard only. /absen (store phone, device token) and /slip (employee link, share token)
 // authenticate themselves; the (?:/|$) keeps /absensi (dashboard) inside the guard.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|pwa-icon/|apple-icon|absen(?:/|$)|slip/|api/device|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|absen(?:/|$)|slip/|api/device|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
 };
