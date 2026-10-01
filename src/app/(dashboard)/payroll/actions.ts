@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import type { ActionState } from "@/lib/action-state";
 import { createClient } from "@/lib/supabase/server";
 import { sha256 } from "@/lib/device";
-import { wibMonthRange } from "@/lib/format";
+import { monthDateRange, wibMonthRange } from "@/lib/format";
 import { overtimeHours } from "@/lib/overtime";
 import { autoItems, totals } from "@/lib/payroll";
 
@@ -56,7 +56,8 @@ export async function generatePayroll(formData: FormData) {
   }
   if (!period) redirect("/payroll?error=gagal");
 
-  const [{ data: employees }, { data: sessions }, { data: loans }] = await Promise.all([
+  const dates = monthDateRange(month);
+  const [{ data: employees }, { data: sessions }, { data: loans }, leaves] = await Promise.all([
     db.from("employees").select("id, name, base_salary, overtime_rate_per_hour").eq("outlet_id", outletId).eq("active", true),
     db
       .from("attendance_sessions")
@@ -66,7 +67,16 @@ export async function generatePayroll(formData: FormData) {
       .gte("clock_in_at", from)
       .lt("clock_in_at", to),
     db.from("loans").select("id, employee_id, monthly_installment, remaining").gt("remaining", 0),
+    db
+      .from("leaves")
+      .select("employee_id, minutes")
+      .eq("outlet_id", outletId)
+      .eq("deducted", true)
+      .gte("leave_date", dates.from)
+      .lt("leave_date", dates.to),
   ]);
+  // Without the leaves table (migration not run) we must not silently skip deductions.
+  if (leaves.error) redirect("/payroll?error=izin");
 
   for (const e of employees ?? []) {
     const hours = (sessions ?? [])
@@ -84,6 +94,7 @@ export async function generatePayroll(formData: FormData) {
       baseSalary: e.base_salary,
       overtimeRate: e.overtime_rate_per_hour,
       overtimeHours: Math.round(hours * 100) / 100,
+      leaveMinutes: (leaves.data ?? []).filter((l) => l.employee_id === e.id).reduce((sum, l) => sum + l.minutes, 0),
       loans: (loans ?? []).filter((l) => l.employee_id === e.id),
     });
     await db.from("payslip_items").insert(items.map((i, n) => ({ ...i, payslip_id: slip.id, sort_order: n })));

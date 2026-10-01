@@ -29,6 +29,29 @@ describe("autoItems", () => {
   });
 });
 
+describe("autoItems with unpaid leave", () => {
+  it("adds one deduction item between overtime and loans", () => {
+    const items = autoItems({
+      baseSalary: 1_750_000,
+      overtimeRate: 20_000,
+      overtimeHours: 2.5,
+      leaveMinutes: 12 * 60,
+      loans: [{ id: "a", monthly_installment: 100_000, remaining: 500_000 }],
+    });
+    expect(items.map((i) => i.name)).toEqual([
+      "Gaji Pokok",
+      "Bonus Lembur (2,5 jam)",
+      "Potongan izin (12 jam)",
+      "Cicilan Pinjaman",
+    ]);
+    expect(items[2]).toMatchObject({ kind: "deduction", amount: 89_744, source: "auto" });
+  });
+  it("adds nothing when there is no deducted leave", () => {
+    const items = autoItems({ baseSalary: 1_750_000, overtimeRate: 0, overtimeHours: 0, loans: [] });
+    expect(items).toHaveLength(1);
+  });
+});
+
 describe("totals", () => {
   it("nets deductions from earnings, like the current spreadsheet slip", () => {
     // Gaji 1.750.000 + lembur 240.000 + performa 50.000 + kesehatan 35.000 - pinjaman 1.750.000

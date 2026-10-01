@@ -43,3 +43,13 @@ export const wibLocalInput = (iso: string, plusHours = 0) =>
 
 export const fmtShortDate = (iso: string) =>
   new Date(iso).toLocaleDateString("id-ID", { timeZone: TZ, day: "numeric", month: "short" });
+
+// 2.5 -> "2,5", 12 -> "12" (Indonesian decimal comma)
+export const fmtHours = (h: number) => h.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+
+// "2026-09" -> ["2026-09-01", "2026-10-01") as plain dates (for date columns)
+export function monthDateRange(month: string) {
+  const [y, m] = month.split("-").map(Number);
+  const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+  return { from: `${month}-01`, to: `${next}-01` };
+}

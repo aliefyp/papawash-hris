@@ -1,3 +1,6 @@
+import { fmtHours } from "./format";
+import { leaveDeduction } from "./leave";
+
 export type Item = {
   name: string;
   kind: "earning" | "deduction";
@@ -8,17 +11,27 @@ export type Item = {
 
 export type LoanInput = { id: string; monthly_installment: number; remaining: number };
 
-// Auto items for one employee-month: base salary, overtime pay, one installment per active loan.
+// Auto items for one employee-month: base salary, overtime pay, unpaid-leave deduction, one installment per active loan.
 export function autoItems(o: {
   baseSalary: number;
   overtimeRate: number;
   overtimeHours: number;
+  leaveMinutes?: number; // only leave marked "dipotong"
   loans: LoanInput[];
 }): Item[] {
   const items: Item[] = [{ name: "Gaji Pokok", kind: "earning", amount: o.baseSalary, source: "auto" }];
   const overtimePay = Math.round(o.overtimeHours * o.overtimeRate);
   if (overtimePay > 0) {
-    items.push({ name: `Bonus Lembur (${o.overtimeHours} jam)`, kind: "earning", amount: overtimePay, source: "auto" });
+    items.push({ name: `Bonus Lembur (${fmtHours(o.overtimeHours)} jam)`, kind: "earning", amount: overtimePay, source: "auto" });
+  }
+  const leavePay = leaveDeduction(o.baseSalary, o.leaveMinutes ?? 0);
+  if (leavePay > 0) {
+    items.push({
+      name: `Potongan izin (${fmtHours((o.leaveMinutes ?? 0) / 60)} jam)`,
+      kind: "deduction",
+      amount: leavePay,
+      source: "auto",
+    });
   }
   for (const l of o.loans) {
     const amount = Math.min(l.monthly_installment, l.remaining);

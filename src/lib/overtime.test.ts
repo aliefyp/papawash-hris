@@ -8,9 +8,9 @@ describe("overtimeHours", () => {
     expect(overtimeHours(at("01:00"), at("10:00"))).toBe(0);
     expect(overtimeHours(at("01:00"), at("08:00"))).toBe(0);
   });
-  it("ignores under 15 minutes, counts from 15", () => {
-    expect(overtimeHours(at("01:00"), at("10:14"))).toBe(0);
-    expect(overtimeHours(at("01:00"), at("10:15"))).toBe(0.25);
+  it("ignores under 30 minutes, counts from 30", () => {
+    expect(overtimeHours(at("01:00"), at("10:29"))).toBe(0);
+    expect(overtimeHours(at("01:00"), at("10:30"))).toBe(0.5);
   });
   it("uses decimal hours", () => {
     expect(overtimeHours(at("01:00"), at("12:30"))).toBe(2.5);

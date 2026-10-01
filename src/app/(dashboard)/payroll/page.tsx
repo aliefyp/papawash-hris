@@ -55,6 +55,12 @@ export default async function PayrollPage({ searchParams }: { searchParams: Prom
           </ul>
         </div>
       )}
+      {error === "izin" && (
+        <p className="rounded-xl bg-warn-soft px-4 py-3 text-sm text-warn">
+          Data izin belum bisa dibaca, jadi gaji tidak dihitung. Jalankan migration <b>20260929020000_leaves.sql</b> di Supabase SQL
+          Editor, lalu coba lagi.
+        </p>
+      )}
       {error === "gagal" && (
         <p className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-destructive">Gagal menghitung gaji. Coba lagi sebentar lagi.</p>
       )}
@@ -64,7 +70,7 @@ export default async function PayrollPage({ searchParams }: { searchParams: Prom
           <CardHeader>
             <CardTitle className="text-lg">Hitung gaji bulanan</CardTitle>
             <CardDescription className="max-w-prose">
-              Sistem menghitung gaji pokok, lembur dari absensi, dan cicilan pinjaman. Setelah itu Anda bisa menambah bonus atau
+              Sistem menghitung gaji pokok, lembur dari absensi, potongan izin, dan cicilan pinjaman. Setelah itu Anda bisa menambah bonus atau
               potongan sebelum mengunci.
             </CardDescription>
           </CardHeader>

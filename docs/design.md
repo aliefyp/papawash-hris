@@ -6,7 +6,7 @@ Aplikasi absensi selfie + payroll untuk usaha dengan 2 karyawan (rencana multi-c
 
 - **Stack:** Next.js (App Router) + Supabase (Postgres, Storage, Auth) di-deploy ke Vercel.
 - **Absensi:** PWA di HP toko. Pilih nama → selfie → selesai. **Tanpa PIN di versi 1** (ditunda; kolom & alur bisa ditambah nanti).
-- **Gaji:** bulanan tetap. Tidak ada potongan otomatis untuk absen/telat (owner menambah potongan manual bila perlu).
+- **Gaji:** bulanan tetap. Tidak ada potongan otomatis dari absensi. Pengurangan gaji hanya lewat **catatan izin** yang diisi admin (karyawan, tanggal, lama izin per jam atau seharian, dipotong/tidak). Izin yang dipotong menjadi item "Potongan izin" otomatis saat Hitung gaji: gaji pokok ÷ 234 jam (26 hari × 9 jam) × jam izin; "Seharian" = 9 jam. Item manual lain tetap bisa ditambah owner.
 - **Lembur:** otomatis. Lembur per hari = max(0, jam pulang − jam masuk − 9 jam) × tarif per jam (tarif tetap per karyawan). Tanpa jadwal shift di sistem.
 - **Lupa absen pulang:** hari ditandai `perlu_koreksi`, sesi otomatis tertutup setelah 14 jam, owner mengisi jam pulang manual. Payroll tidak menebak.
 - **Multi-cabang:** semua tabel punya `outlet_id` sejak awal.
@@ -46,14 +46,14 @@ Generate payroll:
 5. Finalisasi mengunci slip (snapshot nilai) dan mengurangi sisa pinjaman.
 6. Slip final: unduh PDF / bagikan link (token acak, kedaluwarsa, bisa dicabut).
 
-Asumsi: lembur dihitung jam desimal, <15 menit diabaikan; zona waktu WIB; sesi lewat tengah malam masuk ke hari saat karyawan masuk; periode = bulan kalender; draft boleh di-generate ulang tanpa menghapus item manual.
+Asumsi: lembur dihitung jam desimal, <30 menit diabaikan; zona waktu WIB; sesi lewat tengah malam masuk ke hari saat karyawan masuk; periode = bulan kalender; draft boleh di-generate ulang tanpa menghapus item manual.
 
 ## Bagian 3 — Dashboard owner
 
 Login email + password (Supabase Auth), hanya owner di versi 1.
 
 1. **Beranda:** ringkasan hari ini per cabang, peringatan (perlu koreksi, payroll draft).
-2. **Absensi:** tabel harian/bulanan, foto masuk & pulang berdampingan, koreksi & absensi manual (tercatat siapa/kapan).
+2. **Absensi:** dua tab. *Harian*: tabel per hari, foto masuk & pulang berdampingan, koreksi & absensi manual (tercatat siapa/kapan). *Bulanan*: rekap per karyawan (hari hadir, total jam kerja, lembur dengan rumus payroll, hari perlu koreksi, baris total; karyawan aktif tanpa absensi tampil 0) dan tombol **Unduh Excel** (sheet Rekap, lalu satu sheet rincian harian per karyawan). Rumus ada di `src/lib/attendance-recap.ts`, dipakai bersama oleh halaman dan file Excel.
 3. **Karyawan:** tambah/ubah, gaji pokok, tarif lembur, nonaktifkan.
 4. **Payroll:** generate, item manual, finalisasi, PDF/link.
 5. **Pinjaman:** catat pinjaman, sisa, riwayat potongan.
@@ -65,7 +65,7 @@ Tidak masuk versi 1: akun manajer/karyawan, absensi offline, potongan telat/abse
 
 Keamanan: bucket foto privat + link sementara, RLS di database, token perangkat hanya untuk endpoint absensi, waktu dari server, link slip acak & dapat dicabut, retensi foto 90 hari. Karyawan diberi tahu bahwa foto direkam untuk absensi.
 
-Pengujian: unit test rumus payroll (lembur pas 9 jam, <15 menit, lewat tengah malam, perlu koreksi, cicilan, snapshot finalisasi); tes alur absensi; uji manual di HP toko (Android/iOS, PWA); cocokkan hasil dengan slip spreadsheet yang ada.
+Pengujian: unit test rumus payroll (lembur pas 9 jam, <30 menit, lewat tengah malam, perlu koreksi, cicilan, snapshot finalisasi); tes alur absensi; uji manual di HP toko (Android/iOS, PWA); cocokkan hasil dengan slip spreadsheet yang ada.
 
 Tahapan:
 1. Fondasi: Next.js, Supabase, skema DB, login owner.

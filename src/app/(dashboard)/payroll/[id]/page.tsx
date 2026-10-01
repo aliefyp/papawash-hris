@@ -105,7 +105,7 @@ export default async function PeriodPage({ params }: { params: Promise<{ id: str
             </form>
           </div>
           <p className="max-w-prose text-sm text-muted-foreground">
-            <b className="font-medium text-foreground">Hitung ulang</b> memperbarui gaji pokok, lembur, dan cicilan dari data
+            <b className="font-medium text-foreground">Hitung ulang</b> memperbarui gaji pokok, lembur, potongan izin, dan cicilan dari data
             terbaru. Bonus dan potongan yang Anda tambahkan tetap ada.
           </p>
         </Card>

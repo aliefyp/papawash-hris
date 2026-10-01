@@ -9,15 +9,17 @@ export function SelectField({
   defaultValue,
   className,
   ariaLabel,
+  disabled,
 }: {
   name: string;
   options: { value: string; label: string }[];
   defaultValue?: string;
   className?: string;
   ariaLabel?: string;
+  disabled?: boolean;
 }) {
   return (
-    <Select name={name} defaultValue={defaultValue ?? options[0]?.value} required>
+    <Select name={name} defaultValue={defaultValue ?? options[0]?.value} required disabled={disabled}>
       <SelectTrigger className={className ?? "w-full"} aria-label={ariaLabel}>
         <SelectValue />
       </SelectTrigger>
