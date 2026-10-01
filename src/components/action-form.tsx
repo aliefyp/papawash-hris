@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,22 @@ export function useActionToast(state: ActionState) {
   }, [state]);
 }
 
+// React clears a form after every submit, even when the action returned an error, which throws away what
+// the owner typed. This keeps the fields on error and lets the reset happen only after a success.
+export function useFormAction(action: (prev: ActionState, formData: FormData) => Promise<ActionState>) {
+  const succeeded = useRef(false);
+  const [state, formAction] = useActionState(async (prev: ActionState, formData: FormData) => {
+    const result = await action(prev, formData);
+    succeeded.current = !!result?.ok;
+    return result;
+  }, undefined);
+  useActionToast(state);
+  const onReset = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!succeeded.current) e.preventDefault();
+  };
+  return { state, formAction, onReset };
+}
+
 export function ActionForm({
   action,
   children,
@@ -35,10 +51,9 @@ export function ActionForm({
   children: React.ReactNode;
   className?: string;
 }) {
-  const [state, formAction] = useActionState(action, undefined);
-  useActionToast(state);
+  const { state, formAction, onReset } = useFormAction(action);
   return (
-    <form action={formAction} className={className}>
+    <form action={formAction} onReset={onReset} className={className}>
       {children}
       <div role="status" aria-live="polite" className="basis-full text-sm empty:hidden">
         {state?.error && <p className="text-destructive">{state.error}</p>}

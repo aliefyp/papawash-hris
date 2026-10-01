@@ -27,7 +27,8 @@ export function CurrencyInput({
   // A surrounding form resets to empty after a successful action; keep the state in step.
   useEffect(() => {
     const form = hidden.current?.form;
-    const reset = () => setDigits(initial);
+    // The form may cancel its reset (kept after an error); only follow it once the event is final.
+    const reset = (e: Event) => setTimeout(() => !e.defaultPrevented && setDigits(initial), 0);
     form?.addEventListener("reset", reset);
     return () => form?.removeEventListener("reset", reset);
   }, [initial]);

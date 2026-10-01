@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { ActionState } from "@/lib/action-state";
-import { SubmitButton, useActionToast } from "./action-form";
+import { SubmitButton, useFormAction } from "./action-form";
 
 // A button that opens a dialog with a form. The submit is the only primary button; the dialog closes on success.
 export function FormDialog({
@@ -33,8 +33,7 @@ export function FormDialog({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(action, undefined);
-  useActionToast(state);
+  const { state, formAction, onReset } = useFormAction(action);
 
   // Close once the action reports success (adjusting state during render, not in an effect).
   const [seen, setSeen] = useState(state);
@@ -49,7 +48,7 @@ export function FormDialog({
         <Button variant={triggerVariant}>{trigger}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
-        <form action={formAction} className="flex flex-col gap-5">
+        <form action={formAction} onReset={onReset} className="flex flex-col gap-5">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             {description && <DialogDescription>{description}</DialogDescription>}

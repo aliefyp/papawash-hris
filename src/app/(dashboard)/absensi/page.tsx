@@ -22,7 +22,7 @@ import {
 import { overtimeHours } from "@/lib/overtime";
 import { retentionCutoff } from "@/lib/photo-retention";
 import { createClient } from "@/lib/supabase/server";
-import { addManualSession, correctClockOut } from "./actions";
+import { addManualSession, correctSession } from "./actions";
 
 const BADGE = {
   ok: { label: "Normal", tone: "ok" },
@@ -35,15 +35,37 @@ const shift = (date: string, days: number) =>
 
 type Person = { name: string } | null;
 
-function CorrectionFields({ id, clockIn, note }: { id: string; clockIn: string; note?: string }) {
+// Clock-in and clock-out of one session. The clock-out may stay empty only for a session that is still open.
+function TimeFields({
+  id,
+  clockIn,
+  clockOut,
+  note,
+  requireOut,
+}: {
+  id: string;
+  clockIn: string;
+  clockOut: string | null;
+  note?: string;
+  requireOut: boolean;
+}) {
   return (
     <>
       <input type="hidden" name="id" value={id} />
-      <Field label="Jam pulang sebenarnya (WIB)" className="min-w-56 flex-1">
-        <Input type="datetime-local" name="clock_out" required defaultValue={wibLocalInput(clockIn, 9)} />
+      <input type="hidden" name="require_out" value={requireOut ? "yes" : "no"} />
+      <Field label="Jam masuk (WIB)" className="min-w-56 flex-1">
+        <Input type="datetime-local" name="clock_in" required defaultValue={wibLocalInput(clockIn)} />
       </Field>
-      <Field label="Alasan" className="min-w-56 flex-1">
-        <Input name="note" required defaultValue={note} placeholder="mis. Lupa absen pulang" />
+      <Field label="Jam pulang (WIB)" hint={requireOut ? undefined : "(kosongkan jika belum pulang)"} className="min-w-56 flex-1">
+        <Input
+          type="datetime-local"
+          name="clock_out"
+          required={requireOut}
+          defaultValue={clockOut ? wibLocalInput(clockOut) : requireOut ? wibLocalInput(clockIn, 9) : ""}
+        />
+      </Field>
+      <Field label="Alasan" className="min-w-56 sm:col-span-2">
+        <Input name="note" required defaultValue={note} placeholder="mis. Salah ketuk, atau lupa absen pulang" />
       </Field>
     </>
   );
@@ -198,23 +220,23 @@ export default async function AbsensiPage({ searchParams }: { searchParams: Prom
                     <div className="rounded-lg bg-warn-soft p-4">
                       <p className="mb-3 text-sm text-warn">
                         {name} masuk pukul <b>{fmtTime(s.clock_in_at)}</b> tanggal {fmtShortDate(s.clock_in_at)} tapi tidak absen
-                        pulang. Isi jam pulang sebenarnya:
+                        pulang. Isi jam pulang sebenarnya (jam masuk juga bisa diubah kalau salah):
                       </p>
-                      <ActionForm action={correctClockOut} className="flex flex-wrap items-end gap-3">
-                        <CorrectionFields id={s.id} clockIn={s.clock_in_at} note="Lupa absen pulang" />
-                        <SubmitButton>Simpan jam pulang</SubmitButton>
+                      <ActionForm action={correctSession} className="flex flex-wrap items-end gap-3">
+                        <TimeFields id={s.id} clockIn={s.clock_in_at} clockOut={null} note="Lupa absen pulang" requireOut />
+                        <SubmitButton>Simpan koreksi</SubmitButton>
                       </ActionForm>
                     </div>
                   ) : (
                     <div>
                       <FormDialog
-                        action={correctClockOut}
-                        trigger="Koreksi jam pulang"
-                        title={`Koreksi jam pulang ${name}`}
-                        description={`Masuk pukul ${fmtTime(s.clock_in_at)} tanggal ${fmtShortDate(s.clock_in_at)}.`}
+                        action={correctSession}
+                        trigger="Koreksi jam"
+                        title={`Koreksi jam ${name}`}
+                        description="Ubah jam masuk dan/atau jam pulang. Foto selfie tidak ikut berubah, dan perubahan dicatat otomatis."
                         submitLabel="Simpan koreksi"
                       >
-                        <CorrectionFields id={s.id} clockIn={s.clock_in_at} />
+                        <TimeFields id={s.id} clockIn={s.clock_in_at} clockOut={s.clock_out_at} requireOut={!open} />
                       </FormDialog>
                     </div>
                   )}
