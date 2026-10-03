@@ -1,14 +1,13 @@
+import { MAX_OPEN_MS } from "@/lib/attendance-rules";
 import { currentDevice } from "@/lib/device";
 import { adminClient } from "@/lib/supabase/admin";
 import { AbsenClient } from "./absen-client";
 import { PairForm } from "./pair-form";
 
-const STALE_MS = 14 * 3600_000; // matches AUTO_CLOSE_MS in actions.ts
-
 function freshSessions(open: { employee_id: string; clock_in_at: string }[]) {
   const now = Date.now();
   return new Map(
-    open.filter((s) => now - new Date(s.clock_in_at).getTime() < STALE_MS).map((s) => [s.employee_id, s.clock_in_at]),
+    open.filter((s) => now - new Date(s.clock_in_at).getTime() < MAX_OPEN_MS).map((s) => [s.employee_id, s.clock_in_at]),
   );
 }
 

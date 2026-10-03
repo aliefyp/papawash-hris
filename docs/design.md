@@ -8,7 +8,7 @@ Aplikasi absensi selfie + payroll untuk usaha dengan 2 karyawan (rencana multi-c
 - **Absensi:** PWA di HP toko. Pilih nama → selfie → selesai. **Tanpa PIN di versi 1** (ditunda; kolom & alur bisa ditambah nanti).
 - **Gaji:** bulanan tetap. Tidak ada potongan otomatis dari absensi. Pengurangan gaji hanya lewat **catatan izin** yang diisi admin (karyawan, tanggal, lama izin per jam atau seharian, dipotong/tidak). Izin yang dipotong menjadi item "Potongan izin" otomatis saat Hitung gaji: gaji pokok ÷ 234 jam (26 hari × 9 jam) × jam izin; "Seharian" = 9 jam. Item manual lain tetap bisa ditambah owner.
 - **Lembur:** otomatis. Lembur per hari = max(0, jam pulang − jam masuk − 9 jam) × tarif per jam (tarif tetap per karyawan). Tanpa jadwal shift di sistem.
-- **Lupa absen pulang:** hari ditandai `perlu_koreksi`, sesi otomatis tertutup setelah 14 jam, owner mengisi jam pulang manual. Payroll tidak menebak.
+- **Lupa absen pulang:** hari ditandai `perlu_koreksi`, sesi otomatis tertutup setelah 16 jam (`MAX_OPEN_HOURS` di `src/lib/attendance-rules.ts`), owner mengisi jam pulang manual. Payroll tidak menebak.
 - **Multi-cabang:** semua tabel punya `outlet_id` sejak awal.
 
 ## Bagian 1 — Alur absensi (HP toko)
@@ -20,7 +20,7 @@ Aplikasi absensi selfie + payroll untuk usaha dengan 2 karyawan (rencana multi-c
 5. Layar konfirmasi (nama + jam), lalu kembali ke daftar.
 
 Aturan:
-- Satu sesi terbuka per karyawan; sesi >14 jam → `perlu_koreksi`.
+- Satu sesi terbuka per karyawan; sesi >16 jam → `perlu_koreksi`.
 - Foto privat, dihapus otomatis setelah 90 hari (dapat diubah).
 - Tanpa antrean offline di versi 1: bila gagal, tampilkan pesan dan coba lagi.
 - Ganti HP: owner membuat kode pairing baru, lalu "Cabut akses" pada HP lama. Satu cabang boleh punya >1 perangkat aktif. Riwayat mencatat perangkat yang dipakai.

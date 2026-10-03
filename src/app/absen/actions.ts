@@ -3,10 +3,10 @@
 import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { MAX_OPEN_MS } from "@/lib/attendance-rules";
 import { adminClient } from "@/lib/supabase/admin";
 import { currentDevice, DEVICE_COOKIE, sha256 } from "@/lib/device";
 
-const AUTO_CLOSE_MS = 14 * 3600_000; // an open session older than this is closed as perlu_koreksi
 // Guards against an accidental double tap (masuk then pulang). Seconds; set ATTENDANCE_MIN_STAY_SECONDS=0 to test.
 const MIN_STAY_MS = Number(process.env.ATTENDANCE_MIN_STAY_SECONDS ?? 60) * 1000;
 
@@ -70,11 +70,11 @@ export async function submitAttendance(employeeId: string, formData: FormData): 
     .maybeSingle();
 
   // Forgot to clock out: close the stale session at the limit, flagged for the owner to correct.
-  if (open && now.getTime() - new Date(open.clock_in_at).getTime() > AUTO_CLOSE_MS) {
+  if (open && now.getTime() - new Date(open.clock_in_at).getTime() > MAX_OPEN_MS) {
     await db
       .from("attendance_sessions")
       .update({
-        clock_out_at: new Date(new Date(open.clock_in_at).getTime() + AUTO_CLOSE_MS).toISOString(),
+        clock_out_at: new Date(new Date(open.clock_in_at).getTime() + MAX_OPEN_MS).toISOString(),
         status: "perlu_koreksi",
       })
       .eq("id", open.id);

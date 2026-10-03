@@ -1,4 +1,4 @@
-export const STALE_OPEN_MS = 14 * 3_600_000; // same limit the attendance screen uses to auto-close a session
+import { MAX_OPEN_HOURS, MAX_OPEN_MS } from "./attendance-rules";
 const FUTURE_SLACK_MS = 5 * 60_000;
 
 // Returns an error message for the admin, or null when the corrected times are acceptable.
@@ -10,8 +10,8 @@ export function validateTimes(o: { clockIn: Date | null; clockOut: Date | null; 
   if (clockOut) {
     if (clockOut.getTime() > now.getTime() + FUTURE_SLACK_MS) return "Jam pulang tidak boleh di masa depan.";
     if (clockOut.getTime() <= clockIn.getTime()) return "Jam pulang harus setelah jam masuk.";
-  } else if (now.getTime() - clockIn.getTime() > STALE_OPEN_MS) {
-    return "Isi jam pulang juga: sudah lebih dari 14 jam sejak jam masuk, jadi sesi ini tidak bisa dibiarkan terbuka.";
+  } else if (now.getTime() - clockIn.getTime() > MAX_OPEN_MS) {
+    return `Isi jam pulang juga: sudah lebih dari ${MAX_OPEN_HOURS} jam sejak jam masuk, jadi sesi ini tidak bisa dibiarkan terbuka.`;
   }
   return null;
 }

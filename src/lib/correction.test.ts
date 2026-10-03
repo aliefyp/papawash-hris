@@ -24,9 +24,12 @@ describe("validateTimes", () => {
   it("rejects a clock-out that is not after the clock-in", () => {
     expect(validateTimes({ clockIn: t("05:00"), clockOut: t("05:00"), now, requireOut: true })).toBe("Jam pulang harus setelah jam masuk.");
   });
-  it("refuses to leave a session open for more than 14 hours", () => {
-    const msg = validateTimes({ clockIn: new Date("2026-09-30T19:00:00Z"), clockOut: null, now, requireOut: false });
-    expect(msg).toContain("lebih dari 14 jam");
+  it("refuses to leave a session open for more than the 16 hour limit", () => {
+    const msg = validateTimes({ clockIn: new Date("2026-09-30T17:00:00Z"), clockOut: null, now, requireOut: false }); // 17 h ago
+    expect(msg).toContain("lebih dari 16 jam");
+  });
+  it("allows an open session right up to the limit (a 07:00 to 21:00 day)", () => {
+    expect(validateTimes({ clockIn: new Date("2026-09-30T18:30:00Z"), clockOut: null, now, requireOut: false })).toBeNull(); // 15.5 h ago
   });
 });
 

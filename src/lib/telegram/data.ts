@@ -1,4 +1,5 @@
 import "server-only";
+import { MAX_OPEN_MS } from "@/lib/attendance-rules";
 import { monthDateRange, wibDayRange, wibMonthRange } from "@/lib/format";
 import { adminClient } from "@/lib/supabase/admin";
 import type { Flagged, Sess } from "./messages";
@@ -20,14 +21,14 @@ export async function sessionsOn(date: string): Promise<Sess[]> {
   return data ?? [];
 }
 
-// Today's sessions plus sessions still open from the last 14 hours (a night shift started yesterday).
+// Today's sessions plus sessions still open within the open-session limit (a night shift started yesterday).
 export async function sessionsForStatus(date: string, now: Date): Promise<Sess[]> {
   const today = await sessionsOn(date);
   const { data: open } = await db()
     .from("attendance_sessions")
     .select(SESSION_COLUMNS)
     .is("clock_out_at", null)
-    .gte("clock_in_at", new Date(now.getTime() - 14 * 3_600_000).toISOString());
+    .gte("clock_in_at", new Date(now.getTime() - MAX_OPEN_MS).toISOString());
   const seen = new Set(today.map((s) => `${s.employee_id}|${s.clock_in_at}`));
   return [...today, ...(open ?? []).filter((s) => !seen.has(`${s.employee_id}|${s.clock_in_at}`))];
 }
