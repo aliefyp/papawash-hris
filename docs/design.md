@@ -74,3 +74,17 @@ Tahapan:
 4. Payroll: generate, item manual, finalisasi, pinjaman.
 5. Slip gaji: PDF + link bagikan.
 6. Finishing: job hapus foto, PWA, deploy Vercel, uji di HP toko.
+
+## Bot Telegram (hanya owner)
+
+Disepakati 2026-10-01. Bot hanya berbicara dengan akun Telegram owner (cek `TELEGRAM_OWNER_CHAT_ID` di setiap pesan dan tombol). Variabel itu boleh berisi beberapa ID dipisah koma; tiap owner menerima pesan terjadwal (kunci dedupe per chat) dan bisa memakai semua perintah.
+
+**Otomatis (jadwal tiap menit dari Supabase pg_cron → `/api/telegram/tick`)**
+- 07:05 WIB: peringatan kalau belum ada satu pun absen masuk hari itu (toko buka setiap hari).
+- 21:30 WIB: ringkasan harian (per karyawan: jam, durasi, lembur, belum pulang/tidak masuk; izin hari itu; hari perlu koreksi).
+- Hari terakhir bulan 09:00 WIB: pengingat payroll (status gaji, hari perlu koreksi, total izin dipotong). Tidak dikirim bila payroll bulan itu sudah terkunci.
+- Toleransi 30 menit bila tick terlewat. Pesan tidak terkirim dua kali: kunci di tabel `notification_log` (insert dulu, kirim, hapus kunci bila gagal).
+
+**Perintah**: `/status`, `/rekap [bulan lalu|YYYY-MM]`, `/izin <nama> <lama> [kemarin|DD/MM] [dibayar] [catatan]` (tombol Batalkan), `/start`, `/help`. `/start` dari akun lain hanya menampilkan Telegram ID.
+
+**Teknis**: webhook `/api/telegram/webhook` (kunci rahasia dari Telegram), tick `/api/telegram/tick` (Bearer `TICK_SECRET`, `?dry=1` untuk melihat tanpa mengirim). Pesan terkirim tanpa foto selfie (foto tetap di dashboard, hapus otomatis 90 hari). Logika murni (jadwal, pembaca /izin, penyusun pesan) ada di `src/lib/telegram/` dengan tes.
