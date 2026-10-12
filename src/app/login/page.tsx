@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState } from "react";
 import { Field } from "@/components/field";
 import { SubmitButton } from "@/components/action-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { login } from "./actions";
 
@@ -14,7 +15,7 @@ export default function LoginPage() {
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4">
       <Card className="p-2">
         <CardHeader>
-          <CardTitle className="text-2xl tracking-tight">Papawash</CardTitle>
+          <Image src="/logo.png" alt="Papawash" width={720} height={390} priority className="mb-2 h-auto w-40" />
           <CardDescription>Masuk sebagai owner.</CardDescription>
         </CardHeader>
         <CardContent>

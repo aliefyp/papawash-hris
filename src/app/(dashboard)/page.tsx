@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { Check as CheckIcon, TriangleAlert } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fmtDate, fmtMonth, fmtShortDate, fmtTime, todayWib, wibDayRange } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,14 +11,21 @@ function Check({ done }: { done: boolean }) {
   return (
     <span
       className={`grid size-6 shrink-0 place-items-center rounded-full border ${
-        done ? "border-ok bg-ok text-white" : "border-border bg-card text-transparent"
+        done ? "border-ok bg-ok text-white" : "border-input bg-card text-transparent"
       }`}
       aria-hidden
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className="size-3.5">
-        <path d="M5 12.5l4.5 4.5L19 7.5" />
-      </svg>
+      <CheckIcon className="size-3.5" strokeWidth={3} />
     </span>
+  );
+}
+
+function Stat({ label, value, tone }: { label: string; value: string; tone?: "warn" }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className={`text-2xl font-medium tracking-tight ${tone === "warn" ? "text-warn" : ""}`}>{value}</dd>
+    </div>
   );
 }
 
@@ -79,48 +86,68 @@ export default async function HomePage() {
   const byEmployee = new Map<string, { clock_in_at: string; clock_out_at: string | null }>();
   for (const s of sessions.data ?? []) byEmployee.set(s.employee_id, s);
 
+  const total = employees.data?.length ?? 0;
+  const clockedIn = (employees.data ?? []).filter((e) => byEmployee.has(e.id)).length;
+  const inStore = (employees.data ?? []).filter((e) => {
+    const s = byEmployee.get(e.id);
+    return s && !s.clock_out_at;
+  }).length;
+  const flaggedCount = flagged.data?.length ?? 0;
+
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Beranda</h1>
-        <p className="text-muted-foreground">{fmtDate(`${today}T12:00:00+07:00`)}</p>
-      </div>
+    <div className="flex flex-col gap-14">
+      <header>
+        <p className="text-sm text-muted-foreground">{fmtDate(`${today}T12:00:00+07:00`)}</p>
+        {total > 0 ? (
+          <>
+            <h1 className="mt-3 text-6xl font-medium tracking-tighter">
+              <span className="text-primary">{clockedIn}</span>
+              <span className="text-muted-foreground"> dari {total}</span>
+            </h1>
+            <p className="mt-2 text-lg text-muted-foreground">karyawan sudah absen masuk hari ini</p>
+            <dl className="mt-8 flex gap-12">
+              <Stat label="Masih di toko" value={String(inStore)} />
+              <Stat label="Sudah pulang" value={String(clockedIn - inStore)} />
+              <Stat label="Perlu koreksi" value={flaggedCount >= 10 ? "10+" : String(flaggedCount)} tone={flaggedCount ? "warn" : undefined} />
+            </dl>
+          </>
+        ) : (
+          <h1 className="mt-3 text-3xl font-medium tracking-tight">Beranda</h1>
+        )}
+      </header>
 
       {!setupDone && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Mulai dari sini</CardTitle>
-            <CardDescription>Tiga langkah sebelum karyawan bisa absen. Kerjakan berurutan.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ol className="flex flex-col gap-1">
-              {steps.map((s, i) => (
-                <li key={s.label}>
-                  <Link href={s.href} className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted/60">
-                    <Check done={s.done} />
-                    <span>
-                      <span className={`font-medium ${s.done ? "text-muted-foreground line-through" : ""}`}>
-                        {i + 1}. {s.label}
-                      </span>
-                      <span className="block text-sm text-muted-foreground">{s.hint}</span>
+        <section>
+          <h2 className="text-lg font-medium tracking-tight">Mulai dari sini</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Tiga langkah sebelum karyawan bisa absen. Kerjakan berurutan.</p>
+          <ol className="mt-4 divide-y divide-border border-y border-border">
+            {steps.map((s, i) => (
+              <li key={s.label}>
+                <Link href={s.href} className="flex items-center gap-3 py-3.5 transition-colors hover:text-foreground">
+                  <Check done={s.done} />
+                  <span>
+                    <span className={`font-medium ${s.done ? "text-muted-foreground line-through" : ""}`}>
+                      {i + 1}. {s.label}
                     </span>
-                    {!s.done && <span className="ml-auto text-sm font-semibold text-primary">Buka →</span>}
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          </CardContent>
-        </Card>
+                    <span className="block text-sm text-muted-foreground">{s.hint}</span>
+                  </span>
+                  {!s.done && <span className="ml-auto text-sm font-medium text-primary underline underline-offset-4">Buka</span>}
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
       )}
 
       {attention.length > 0 && (
         <section>
-          <h2 className="mb-3 text-lg font-semibold">Perlu perhatian</h2>
-          <ul className="flex flex-col gap-3">
+          <h2 className="mb-3 text-lg font-medium tracking-tight">Perlu perhatian</h2>
+          <ul className="divide-y divide-border border-y border-border">
             {attention.map((a) => (
-              <li key={a.key} className="flex flex-wrap items-center gap-3 rounded-xl bg-warn-soft p-4 text-sm text-warn">
+              <li key={a.key} className="flex flex-wrap items-center gap-3 py-3.5 text-sm">
+                <TriangleAlert className="size-4 shrink-0 text-warn" strokeWidth={1.75} aria-hidden />
                 <span className="min-w-0 flex-1">{a.text}</span>
-                <Button asChild variant="secondary" className="bg-card">
+                <Button asChild variant="outline" size="sm">
                   <Link href={a.href}>{a.action}</Link>
                 </Button>
               </li>
@@ -132,31 +159,29 @@ export default async function HomePage() {
       {employees.data?.length ? (
         <section>
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-lg font-semibold">Hari ini</h2>
-            <Link href="/absensi" className="text-sm font-medium text-primary">
-              Lihat semua absensi →
+            <h2 className="text-lg font-medium tracking-tight">Hari ini</h2>
+            <Link href="/absensi" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+              Lihat semua absensi
             </Link>
           </div>
-          <Card className="gap-0 overflow-hidden py-0">
-            <ul className="divide-y divide-border">
-              {employees.data.map((e) => {
-                const s = byEmployee.get(e.id);
-                const status = !s
-                  ? { text: "Belum masuk", tone: "neutral" as const }
-                  : s.clock_out_at
-                    ? { text: `Pulang ${fmtTime(s.clock_out_at)}`, tone: "ok" as const }
-                    : { text: `Di toko sejak ${fmtTime(s.clock_in_at)}`, tone: "info" as const };
-                return (
-                  <li key={e.id} className="flex items-center gap-4 px-4 py-3">
-                    <span className="font-medium">{e.name}</span>
-                    <StatusBadge tone={status.tone} className="ml-auto">
-                      {status.text}
-                    </StatusBadge>
-                  </li>
-                );
-              })}
-            </ul>
-          </Card>
+          <ul className="divide-y divide-border border-y border-border">
+            {employees.data.map((e) => {
+              const s = byEmployee.get(e.id);
+              const status = !s
+                ? { text: "Belum masuk", tone: "neutral" as const }
+                : s.clock_out_at
+                  ? { text: `Pulang ${fmtTime(s.clock_out_at)}`, tone: "ok" as const }
+                  : { text: `Di toko sejak ${fmtTime(s.clock_in_at)}`, tone: "info" as const };
+              return (
+                <li key={e.id} className="flex items-center gap-4 py-3.5">
+                  <span className="font-medium">{e.name}</span>
+                  <StatusBadge tone={status.tone} className="ml-auto">
+                    {status.text}
+                  </StatusBadge>
+                </li>
+              );
+            })}
+          </ul>
         </section>
       ) : null}
     </div>

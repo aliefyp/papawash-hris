@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { fmtDate, fmtTime } from "@/lib/format";
@@ -78,6 +79,7 @@ export function AbsenClient({ outlet, initial }: { outlet: string; initial: Empl
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-6 pt-8">
       <header>
+        <Image src="/logo.png" alt="Papawash" width={720} height={390} priority className="mb-5 h-auto w-28" />
         <p className="text-base font-medium text-muted-foreground">{outlet}</p>
         <p suppressHydrationWarning className="mt-1 text-6xl font-semibold tracking-tight">
           {fmtTime(now)}

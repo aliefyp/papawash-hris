@@ -4,30 +4,32 @@
 
 /* Light only: the store phone is used in bright rooms, the owner works in daylight. */
 :root {
-  /* shadcn tokens, carrying the Papawash palette (blue accent, cool neutrals) */
-  --background: oklch(0.982 0.004 240);
-  --foreground: oklch(0.22 0.025 255);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.025 255);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.025 255);
-  --primary: oklch(0.52 0.19 255);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.96 0.006 250);
-  --secondary-foreground: oklch(0.22 0.025 255);
-  --muted: oklch(0.96 0.006 250);
-  --muted-foreground: oklch(0.5 0.03 255);
-  --accent: oklch(0.955 0.03 255);
-  --accent-foreground: oklch(0.45 0.19 255);
+  /* shadcn tokens, carrying the Papawash palette (logo teal accent, cool neutrals) */
+  --background: oklch(0.995 0.003 200);
+  --foreground: oklch(0.2 0.02 215);
+  --card: oklch(0.995 0.003 200);
+  --card-foreground: oklch(0.2 0.02 215);
+  --popover: oklch(0.995 0.003 200);
+  --popover-foreground: oklch(0.2 0.02 215);
+  /* the logo teal (#02757c, hue ~200) is the one brand color: action, selection, links, focus.
+     Neutrals carry a trace of the same hue so the page feels cut from the logo. Status colors stay separate. */
+  --primary: #02757c;
+  --primary-foreground: oklch(0.99 0.003 200);
+  --secondary: oklch(0.965 0.008 200);
+  --secondary-foreground: oklch(0.2 0.02 215);
+  --muted: oklch(0.965 0.007 200);
+  --muted-foreground: oklch(0.48 0.025 210);
+  --accent: oklch(0.945 0.03 197);
+  --accent-foreground: oklch(0.34 0.07 205);
   --destructive: oklch(0.52 0.2 27);
-  --border: oklch(0.925 0.008 250);
-  --input: oklch(0.9 0.008 250);
-  --ring: oklch(0.52 0.19 255);
-  --radius: 0.625rem;
+  --border: oklch(0.915 0.01 200);
+  --input: oklch(0.87 0.012 200);
+  --ring: #02757c;
+  --radius: 0.5rem;
 
   /* status colors shadcn does not define */
-  --ok: oklch(0.52 0.13 155);
-  --ok-soft: oklch(0.95 0.045 155);
+  --ok: oklch(0.5 0.14 145);
+  --ok-soft: oklch(0.95 0.05 145);
   --warn: oklch(0.5 0.12 65);
   --warn-soft: oklch(0.955 0.055 85);
   --danger-soft: oklch(0.96 0.03 27);
@@ -81,6 +83,12 @@
   body {
     @apply bg-background text-foreground;
     font-variant-numeric: tabular-nums;
+    caret-color: var(--primary);
+  }
+  input,
+  select,
+  textarea {
+    accent-color: var(--primary);
   }
   ::selection {
     background: var(--accent);

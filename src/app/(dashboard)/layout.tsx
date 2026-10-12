@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardNav } from "@/components/dashboard-nav";
@@ -25,20 +26,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[14rem_1fr]">
-      <aside className="flex flex-col gap-3 border-b border-border bg-card px-4 py-3 md:sticky md:top-0 md:h-dvh md:gap-8 md:border-b-0 md:border-r md:py-6">
+    <div className="min-h-dvh md:grid md:grid-cols-[15rem_1fr]">
+      <aside className="flex flex-col gap-3 border-b border-border bg-secondary px-4 py-3 md:sticky md:top-0 md:h-dvh md:gap-8 md:border-b-0 md:border-r md:py-6">
         <div className="flex items-center justify-between">
-          <span className="text-base font-semibold tracking-tight">Papawash</span>
+          <Image src="/logo.png" alt="Papawash" width={720} height={390} priority className="ml-3 h-auto w-24 md:w-28" />
           <form action={logout} className="md:hidden">
             <Button variant="ghost" size="sm">Keluar</Button>
           </form>
         </div>
         <DashboardNav />
         <form action={logout} className="mt-auto hidden md:block">
-          <Button variant="ghost" className="w-full justify-start">Keluar</Button>
+          <Button variant="ghost" className="w-full justify-start text-muted-foreground">Keluar</Button>
         </form>
       </aside>
-      <div className="min-w-0 px-4 py-6 md:px-10 md:py-10">
+      <div className="min-w-0 px-4 py-8 md:px-14 md:py-14">
         <div className="mx-auto max-w-4xl">{children}</div>
       </div>
     </div>

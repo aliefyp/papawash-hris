@@ -1,13 +1,13 @@
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const TONES = {
-  ok: "bg-ok-soft text-ok",
-  warn: "bg-warn-soft text-warn",
-  info: "bg-accent text-accent-foreground",
-  neutral: "bg-muted text-muted-foreground",
+  ok: "text-ok",
+  warn: "text-warn",
+  info: "text-primary",
+  neutral: "text-muted-foreground",
 } as const;
 
+// Quiet status: colored text with a small dot. Color carries the meaning, no filled pill.
 export function StatusBadge({
   tone,
   children,
@@ -18,8 +18,9 @@ export function StatusBadge({
   className?: string;
 }) {
   return (
-    <Badge variant="secondary" className={cn("h-6 rounded-full px-2.5 text-xs font-medium", TONES[tone], className)}>
+    <span className={cn("inline-flex items-center gap-1.5 text-sm font-medium whitespace-nowrap", TONES[tone], className)}>
+      <span className="size-1.5 rounded-full bg-current" aria-hidden />
       {children}
-    </Badge>
+    </span>
   );
 }
